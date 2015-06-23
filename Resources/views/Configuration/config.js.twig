@@ -6,8 +6,10 @@
     var identifiers_map = {
     {% for entity in entities -%}
         {% for field in entity.fields -%}
-            {% if field.identifier == 1 -%}
-                {% set identifier = field.name -%}
+            {% if field['identifier'] is defined -%}
+                {% if field.identifier == 1 -%}
+                    {% set identifier = field.name -%}
+                {% endif %}
             {% endif %}
         {% endfor %}
         '{{ entity.name }}': '{{ identifier }}'{{ loop.last ? '' : ',' }}
