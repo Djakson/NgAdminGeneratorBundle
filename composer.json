@@ -1,9 +1,9 @@
 {
-  "name": "marmelab/ng-admin-generator-bundle",
+  "name": "grimmlab/ng-admin-generator-bundle",
   "type": "symfony-bundle",
   "description": "Bundle to generate easily a ng-admin configuration file based on your LemonRestBundle based API",
   "keywords": ["administration", "ng-admin", "rest"],
-  "homepage": "https://github.com/marmelab/NgAdminGeneratorBundle",
+  "homepage": "https://github.com/Djakson/NgAdminGeneratorBundle.git",
   "license": "MIT",
   "authors": [
     {
