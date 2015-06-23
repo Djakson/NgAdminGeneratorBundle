@@ -33,7 +33,7 @@ class NgAdminWithRelationshipsTransformer implements TransformerInterface
             $fieldIndex = $this->getFieldIndex($configuration['fields'], $fieldName);
             if (!$fieldIndex) {
                 // if not found, try with referenced column
-                $fieldName = $associationMapping['joinColumns'][0]['name'];
+                $fieldName = $associationMapping['joinTable']['joinColumns'][0]['name'];
                 $fieldIndex = $this->getFieldIndex($configuration['fields'], $fieldName);
                 if (!$fieldIndex) {
                     continue;

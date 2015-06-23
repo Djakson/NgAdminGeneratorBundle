@@ -2,7 +2,17 @@
     "use strict";
 
     var app = angular.module('myApp', ['ng-admin']);
-
+    {% set identifier = 'id' -%}
+    var identifiers_map = {
+    {% for entity in entities -%}
+        {% for field in entity.fields -%}
+            {% if field.identifier == 1 -%}
+                {% set identifier = field.name -%}
+            {% endif %}
+        {% endfor %}
+        '{{ entity.name }}': '{{ identifier }}'{{ loop.last ? '' : ',' }}
+    {% endfor %}
+    };
     // use custom query parameters function to format the API request correctly
     app.config(function(RestangularProvider) {
         RestangularProvider.addFullRequestInterceptor(function(element, operation, what, url, headers, params) {
@@ -15,6 +25,9 @@
 
                 // custom sort params
                 if (params._sortField) {
+                    if ('id' === params._sortField && 'undefined' !== typeof identifiers_map[what]) {
+                        params._sortField = identifiers_map[what];
+                    }
                     params._orderBy = params._sortField;
                     params._orderDir = params._sortDir;
                     delete params._sortField;

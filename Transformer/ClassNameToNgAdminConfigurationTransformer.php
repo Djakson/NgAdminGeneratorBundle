@@ -29,9 +29,10 @@ class ClassNameToNgAdminConfigurationTransformer implements TransformerInterface
         ];
 
         foreach ($metadata->propertyMetadata as $jmsField) {
+            $doc_block = ($jmsField->reflection->getDocComment());
             $field = ['name' => $this->namingStrategy->translateName($jmsField)];
+            $field['identifier'] = preg_match('/\@Id/', $doc_block);
             $field = array_merge($field, $this->getExtraDataBasedOnType($jmsField));
-
             $entity['fields'][] = $field;
         }
 
