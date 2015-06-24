@@ -1,5 +1,6 @@
 if ('undefined' == typeof module) {var module = {}}
-(function(module) {
+var config = require('./config.js') || {}
+(function(module, config) {
     "use strict";
 
     var app = angular.module('myApp', ['ng-admin']);
@@ -102,7 +103,11 @@ if ('undefined' == typeof module) {var module = {}}
                     "fields": entity.fields
                 } %}
                 ]);
-
+            {% for view in ['listView', 'creationView', 'editionView', 'showView'] -%}
+                if ('undefined' !== typeof config.templates['{{ entity.name }}']['{{ view }}']) {
+                    {{ entity.name }}.listView().template(config.templates['{{ entity.name }}']['{{ view }}']);
+                }
+            {% endfor -%}
             return {{ entity.name }};
         });
     });
@@ -125,4 +130,4 @@ if ('undefined' == typeof module) {var module = {}}
     });
 
     module.exports = app
-})(module);
+})(module, config);
