@@ -104,9 +104,9 @@ var config = require('./config.js') || {}
                 } %}
                 ]);
             {% for view in ['listView', 'creationView', 'editionView', 'showView'] -%}
-                if ('undefined' !== typeof config.templates['{{ entity.name }}']['{{ view }}']) {
-                    {{ entity.name }}.listView().template(config.templates['{{ entity.name }}']['{{ view }}']);
-                }
+            if ('undefined' !== typeof config.templates['{{ entity.name }}']['{{ view }}']) {
+                {{ entity.name }}.{{ view }}().template(config.templates['{{ entity.name }}']['{{ view }}']);
+            }
             {% endfor -%}
             return {{ entity.name }};
         });
