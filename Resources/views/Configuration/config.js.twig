@@ -1,135 +1,131 @@
-if ('undefined' == typeof module) {var module = {}}
-var config = require('./config.js') || {}
-(function(module, config) {
-    "use strict";
+if ('undefined' == typeof module) {var module = {}};
+var config = require('./config.js') || {};
+var app = angular.module('myApp', ['ng-admin']);
+{% set identifier = 'id' -%}
+var identifiers_map = {
+{% for entity in entities -%}
+    {% for field in entity.fields -%}
+        {% if field['identifier'] is defined -%}
+            {% if field.identifier == 1 -%}
+                {% set identifier = field.name -%}
+            {% endif -%}
+        {% endif -%}
+    {% endfor -%}
+    '{{ entity.name }}': '{{ identifier }}'{{ loop.last ? '' : ',' }}
+{% endfor -%}
+};
+// use custom query parameters function to format the API request correctly
+app.config(function(RestangularProvider) {
+    RestangularProvider.addFullRequestInterceptor(function(element, operation, what, url, headers, params) {
+        if (operation == "getList") {
+            // custom pagination params
+            params._offset = (params._page - 1) * params._perPage;
+            params._limit = params._perPage;
+            delete params._page;
+            delete params._perPage;
 
-    var app = angular.module('myApp', ['ng-admin']);
-    {% set identifier = 'id' -%}
-    var identifiers_map = {
-    {% for entity in entities -%}
-        {% for field in entity.fields -%}
-            {% if field['identifier'] is defined -%}
-                {% if field.identifier == 1 -%}
-                    {% set identifier = field.name -%}
-                {% endif %}
-            {% endif %}
-        {% endfor %}
-        '{{ entity.name }}': '{{ identifier }}'{{ loop.last ? '' : ',' }}
-    {% endfor %}
-    };
-    // use custom query parameters function to format the API request correctly
-    app.config(function(RestangularProvider) {
-        RestangularProvider.addFullRequestInterceptor(function(element, operation, what, url, headers, params) {
-            if (operation == "getList") {
-                // custom pagination params
-                params._offset = (params._page - 1) * params._perPage;
-                params._limit = params._perPage;
-                delete params._page;
-                delete params._perPage;
-
-                // custom sort params
-                if (params._sortField) {
-                    if ('id' === params._sortField && 'undefined' !== typeof identifiers_map[what]) {
-                        params._sortField = identifiers_map[what];
-                    }
-                    params._orderBy = params._sortField;
-                    params._orderDir = params._sortDir;
-                    delete params._sortField;
-                    delete params._sortDir;
+            // custom sort params
+            if (params._sortField) {
+                if ('id' === params._sortField && 'undefined' !== typeof identifiers_map[what]) {
+                    params._sortField = identifiers_map[what];
                 }
-
-                // custom filters
-                if (params._filters) {
-                    for (var filter in params._filters) {
-                        params[filter] = params._filters[filter];
-                    }
-                    delete params._filters;
-                }
+                params._orderBy = params._sortField;
+                params._orderDir = params._sortDir;
+                delete params._sortField;
+                delete params._sortDir;
             }
 
-            return { params: params };
-        });
-    });
+            // custom filters
+            if (params._filters) {
+                for (var filter in params._filters) {
+                    params[filter] = params._filters[filter];
+                }
+                delete params._filters;
+            }
+        }
 
-    {% for entity in entities -%}
-    app.config(function($provide, NgAdminConfigurationProvider{{ entity.has_relationships ? ", RestangularProvider" : "" }}) {
-        $provide.factory("{{ entity.name|capitalize }}Admin", function() {
-            var nga = NgAdminConfigurationProvider;
-            var {{ entity.name }} = nga.entity('{{ entity.name }}');
+        return { params: params };
+    });
+});
+
+{% for entity in entities -%}
+app.config(function($provide, NgAdminConfigurationProvider{{ entity.has_relationships ? ", RestangularProvider" : "" }}) {
+    $provide.factory("{{ entity.name|capitalize }}Admin", function() {
+        var nga = NgAdminConfigurationProvider;
+        var {{ entity.name }} = nga.entity('{{ entity.name }}');
 {% if entity.has_relationships %}
 
-            {% include "marmelabNgAdminGeneratorBundle:Configuration:element_transformer.js.twig" with {
-                    "entity": entity
-                } only %}
+        {% include "marmelabNgAdminGeneratorBundle:Configuration:element_transformer.js.twig" with {
+                "entity": entity
+            } only %}
 {% endif %}
 
-            {{ entity.name }}.menuView()
-                .icon('<span class="glyphicon glyphicon-{{ entity.icon }}"></span>');
+        {{ entity.name }}.menuView()
+            .icon('<span class="glyphicon glyphicon-{{ entity.icon }}"></span>');
 
-            {{ entity.name }}.dashboardView()
-                .title('Recent {{ entity.name }}')
-                .limit(5)
-                .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
-                    "view": "dashboard",
-                    "fields": entity.fields[0:3]
-                } only %}
-                ]);
+        {{ entity.name }}.dashboardView()
+            .title('Recent {{ entity.name }}')
+            .limit(5)
+            .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
+                "view": "dashboard",
+                "fields": entity.fields[0:3]
+            } only %}
+            ]);
 
-            {{ entity.name }}.listView()
-                .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
-                    "view": "list",
-                    "fields": entity.fields
-                } %}
-                ])
-                .listActions(['show', 'edit', 'delete']);
+        {{ entity.name }}.listView()
+            .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
+                "view": "list",
+                "fields": entity.fields
+            } %}
+            ])
+            .listActions(['show', 'edit', 'delete']);
 
-            {{ entity.name }}.creationView()
-                .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
-                    "view": "creation",
-                    "fields": entity.fields
-                } %}
-                ]);
+        {{ entity.name }}.creationView()
+            .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
+                "view": "creation",
+                "fields": entity.fields
+            } %}
+            ]);
 
-            {{ entity.name }}.editionView()
-                .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
-                    "view": "edition",
-                    "fields": entity.fields
-                } %}
-                ]);
+        {{ entity.name }}.editionView()
+            .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
+                "view": "edition",
+                "fields": entity.fields
+            } %}
+            ]);
 
-            {{ entity.name }}.showView()
-                .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
-                    "view": "show",
-                    "fields": entity.fields
-                } %}
-                ]);
-            if ('undefined' !== typeof config.templates['{{ entity.name }}']) {
-            {% for view in ['listView', 'creationView', 'editionView', 'showView'] -%}
-                if ('undefined' !== typeof config.templates['{{ entity.name }}']['{{ view }}']) {
-                    {{ entity.name }}.{{ view }}().template(config.templates['{{ entity.name }}']['{{ view }}']);
-                }
-            {% endfor -%}
+        {{ entity.name }}.showView()
+            .fields([{% include "marmelabNgAdminGeneratorBundle:Configuration:fields.js.twig" with {
+                "view": "show",
+                "fields": entity.fields
+            } %}
+            ]);
+        if ('undefined' !== typeof config.templates['{{ entity.name }}']) {
+        {% for view in ['listView', 'creationView', 'editionView', 'showView'] -%}
+            if ('undefined' !== typeof config.templates['{{ entity.name }}']['{{ view }}']) {
+                {{ entity.name }}.{{ view }}().template(config.templates['{{ entity.name }}']['{{ view }}']);
             }
-            return {{ entity.name }};
-        });
+        {% endfor -%}
+        }
+        return {{ entity.name }};
     });
+});
 
-    {% endfor -%}
-    app.config(function(NgAdminConfigurationProvider, {% for entity in entities -%}
-        {{ entity.name|capitalize }}AdminProvider{{ loop.last ? "" : ", " }}
-    {%- endfor %}) {
-        var admin = NgAdminConfigurationProvider
-            .application('')
-            .baseApiUrl(location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '') + '/api/')
+{% endfor -%}
+app.config(function(NgAdminConfigurationProvider, {% for entity in entities -%}
+    {{ entity.name|capitalize }}AdminProvider{{ loop.last ? "" : ", " }}
+{%- endfor %}) {
+    var admin = NgAdminConfigurationProvider
+        .application('')
+        .baseApiUrl(location.protocol + '//' + location.hostname + (location.port ? ':' + location.port : '') + '/api/')
 
-        admin
-        {% for entity in entities %}
-    .addEntity({{ entity.name|capitalize }}AdminProvider.$get())
-        {% endfor %}
+    admin
+    {% for entity in entities %}
+.addEntity({{ entity.name|capitalize }}AdminProvider.$get())
+    {% endfor %}
 ;
 
-        NgAdminConfigurationProvider.configure(admin);
-    });
+    NgAdminConfigurationProvider.configure(admin);
+});
 
-    module.exports = app
-})(module, config);
+module.exports = app;
