@@ -103,11 +103,16 @@ class NgAdminWithRelationshipsTransformer implements TransformerInterface
 
     private function transformOneToManyMapping($associationMapping)
     {
+        $pluralForm = Inflector::pluralize($associationMapping['fieldName']);
+        $singleForm = $associationMapping['fieldName'];
+        if ( $singleForm === $pluralForm ) {
+            $singleForm = Inflector::singularize($singleForm);
+        }
         return [
-            'name' => $associationMapping['fieldName'],
+            'name' => $pluralForm, //$associationMapping['fieldName'],
             'type' => 'referenced_list',
             'referencedEntity' => [
-                'name' => Inflector::pluralize($associationMapping['fieldName']),
+                'name' => $singleForm,
                 'class' => $associationMapping['targetEntity']
             ],
             'referencedField' => $this->referencedFieldGuesser->guessTargetReferenceField($associationMapping['sourceEntity'])
@@ -116,11 +121,16 @@ class NgAdminWithRelationshipsTransformer implements TransformerInterface
 
     private function transformManyToOneMapping($associationMapping)
     {
+        $pluralForm = Inflector::pluralize($associationMapping['fieldName']);
+        $singleForm = $associationMapping['fieldName'];
+        if ( $singleForm === $pluralForm ) {
+            $singleForm = Inflector::singularize($singleForm);
+        }
         return [
-            'name' => $associationMapping['fieldName'],
+            'name' => $pluralForm,
             'type' => 'reference',
             'referencedEntity' => [
-                'name' => Inflector::pluralize($associationMapping['fieldName']),
+                'name' => $singleForm,
                 'class' => $associationMapping['targetEntity']
             ],
             'referencedField' => $this->referencedFieldGuesser->guess($associationMapping['targetEntity'])
@@ -129,11 +139,16 @@ class NgAdminWithRelationshipsTransformer implements TransformerInterface
 
     private function transformManyToManyMapping($associationMapping)
     {
+        $pluralForm = Inflector::pluralize($associationMapping['fieldName']);
+        $singleForm = $associationMapping['fieldName'];
+        if ( $singleForm === $pluralForm ) {
+            $singleForm = Inflector::singularize($singleForm);
+        }
         return [
-            'name' => $associationMapping['fieldName'],
+            'name' => $pluralForm,
             'type' => 'reference_many',
             'referencedEntity' => [
-                'name' => Inflector::pluralize($associationMapping['fieldName']),
+                'name' => $singleForm,
                 'class' => $associationMapping['targetEntity']
             ],
             'referencedField' => $this->referencedFieldGuesser->guess($associationMapping['targetEntity'])
